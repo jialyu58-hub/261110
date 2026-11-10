@@ -437,7 +437,7 @@ function hitBoss(b,dmg,x,y){
   if(b.inv>0||b.t<3.2||b.dying>0){if(Math.random()<.3)sparks(x,y,2,'#fff',150,-Math.PI/2);return;}
   b.hp-=dmg;b.flash=.05;if(Math.random()<.35)sparks(x,y,2,C.cyan,200,-Math.PI/2);SFX.hit();
   addScore(Math.round(dmg*10));
-  if(b.hp<=0){b.hp=0;b.dying=2.6;b.dieT=0;cancelBullets(true);G.slow=1.2;G.combo+=10;G.comboT=3;pop(b.x,b.y,'DESTROYED!',C.gold,26,2);}
+  if(b.hp<=0){b.hp=0;b.dying=2.6;b.dieT=0;cancelBullets(true);G.slow=1.2;G.combo+=10;G.comboT=3;G.maxCombo=Math.max(G.maxCombo,G.combo);pop(b.x,b.y,'DESTROYED!',C.gold,26,2);}
 }
 
 /* ================= player ================= */
