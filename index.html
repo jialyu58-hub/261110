@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flight Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<style>
+:root{--cy:#5ff2ff;--rd:#ff3b6b;--gd:#ffd34d;--gr:#6dff9c;--bg:#0b0f1e}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:#fff;font-family:'Orbitron','Black Han Sans',sans-serif;overflow-x:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 16px}
+.logo{position:relative;font-size:clamp(44px,9vw,110px);font-weight:900;font-style:italic;letter-spacing:.05em;line-height:.95;text-align:center;background:linear-gradient(180deg,#fff 0 45%,#7ff 55%,#2ad 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 0 rgba(0,0,0,.35)) drop-shadow(0 0 30px rgba(95,242,255,.45));animation:logoIn 1s cubic-bezier(.2,1.4,.4,1) both, float 4s 1s ease-in-out infinite}
+.logo::before,.logo::after{content:attr(data-t);position:absolute;inset:0;background:inherit;-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo::before{animation:g1 3.2s infinite steps(1)}
+.logo::after{animation:g2 3.2s infinite steps(1)}
+@keyframes g1{0%,90%,100%{opacity:0;transform:none}91%{opacity:.8;transform:translate(-7px,2px);clip-path:inset(10% 0 60% 0)}95%{opacity:.8;transform:translate(5px,-2px);clip-path:inset(55% 0 12% 0)}}
+@keyframes g2{0%,92%,100%{opacity:0;transform:none}93%{opacity:.7;transform:translate(7px,1px);clip-path:inset(30% 0 40% 0)}97%{opacity:.7;transform:translate(-4px,0);clip-path:inset(70% 0 4% 0)}}
+@keyframes logoIn{from{opacity:0;transform:scale(2.2) skewX(-30deg);filter:blur(12px)}to{opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0) skewX(-6deg)}50%{transform:translateY(-8px) skewX(-6deg)}}
+.sub{font-family:'Black Han Sans',sans-serif;font-size:clamp(15px,2.2vw,20px);letter-spacing:10px;color:var(--gd);margin:14px 0 44px;text-shadow:0 0 12px rgba(255,211,77,.6);animation:fadeUp .8s .4s both;text-align:center}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,320px));gap:26px;perspective:1100px;width:100%;justify-content:center}
+@media (max-width:980px){.cards{grid-template-columns:minmax(0,420px)}}
+.card{--rx:0deg;--ry:0deg;--mx:50%;--my:50%;--c:var(--cy);position:relative;display:block;color:#fff;text-decoration:none;background:linear-gradient(160deg,rgba(25,35,70,.85),rgba(8,12,28,.92));border:1px solid rgba(255,255,255,.12);border-radius:14px;overflow:hidden;transform:rotateX(var(--rx)) rotateY(var(--ry));transform-style:preserve-3d;transition:transform .15s ease-out,box-shadow .3s,border-color .3s;animation:cardIn .8s cubic-bezier(.2,1.3,.4,1) both}
+.card:nth-child(1){animation-delay:.55s}.card:nth-child(2){animation-delay:.7s;--c:var(--rd)}.card:nth-child(3){animation-delay:.85s;--c:var(--gd)}
+@keyframes cardIn{from{opacity:0;transform:translateY(80px) rotateX(40deg) scale(.85)}}
+.card:hover{border-color:var(--c);box-shadow:0 20px 60px -10px var(--c),0 0 0 1px var(--c)}
+.card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx) var(--my),rgba(255,255,255,.22),transparent 45%);opacity:0;transition:opacity .3s;pointer-events:none}
+.card:hover::after{opacity:1}
+.card canvas{display:block;width:100%;aspect-ratio:16/10;background:#000}
+.info{padding:16px 18px 18px;transform:translateZ(30px)}
+.num{font-size:11px;letter-spacing:4px;color:var(--c)}
+.card h2{font-size:26px;font-weight:900;font-style:italic;letter-spacing:2px;margin:4px 0 2px}
+.kind{font-family:'Black Han Sans',sans-serif;font-size:14px;color:var(--c);letter-spacing:2px}
+.desc{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:13px;line-height:1.6;opacity:.75;margin:10px 0 14px;letter-spacing:.5px}
+.foot{display:flex;justify-content:space-between;align-items:center}
+.best{font-size:11px;letter-spacing:2px;opacity:.8}
+.best b{display:block;font-size:18px;color:var(--c);letter-spacing:1px}
+.play{font-weight:900;font-size:13px;letter-spacing:3px;padding:10px 18px;background:var(--c);color:#081018;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transition:transform .2s}
+.card:hover .play{transform:scale(1.1);animation:pulse .8s infinite}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+.hint{margin-top:36px;font-family:'Black Han Sans',sans-serif;font-size:13px;opacity:.55;letter-spacing:2px;animation:fadeUp .8s 1.1s both;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<main>
+  <div class="logo" data-t="FLIGHT ARCADE">FLIGHT ARCADE</div>
+  <div class="sub">세 가지 하늘, 세 가지 전투</div>
+  <div class="cards">
+    <a class="card" href="skyfury.html" data-id="skyfury">
+      <canvas data-p="0"></canvas>
+      <div class="info"><div class="num">01 · 3D DOGFIGHT</div><h2>SKY FURY</h2><div class="kind">3D 자유비행 공중전</div>
+        <div class="desc">노을 진 바다 위를 자유롭게 날며 적 편대를 격추. 락온 미사일, 배럴 롤 회피, 거대 폭격기 보스.</div>
+        <div class="foot"><div class="best">BEST<b>-</b></div><span class="play">PLAY ▶</span></div></div>
+    </a>
+    <a class="card" href="starstorm.html" data-id="starstorm">
+      <canvas data-p="1"></canvas>
+      <div class="info"><div class="num">02 · BULLET HELL</div><h2>STAR STORM</h2><div class="kind">2D 종스크롤 탄막 슈팅</div>
+        <div class="desc">우주를 뒤덮는 탄막 사이를 뚫고 나가라. 파워업, 폭탄, 그레이즈 보너스, 3단 변신 보스.</div>
+        <div class="foot"><div class="best">BEST<b>-</b></div><span class="play">PLAY ▶</span></div></div>
+    </a>
+    <a class="card" href="canyon.html" data-id="canyon">
+      <canvas data-p="2"></canvas>
+      <div class="info"><div class="num">03 · SPEED RUN</div><h2>CANYON RUSH</h2><div class="kind">3D 고속 협곡 질주</div>
+        <div class="desc">끝없는 협곡을 초고속으로 돌파. 링을 통과해 부스트, 장애물을 피하고 드론을 격파하라.</div>
+        <div class="foot"><div class="best">BEST<b>-</b></div><span class="play">PLAY ▶</span></div></div>
+    </a>
+  </div>
+  <div class="hint">카드를 클릭해 게임 시작 · 게임 중 ESC → 메인 메뉴</div>
+</main>
+<script>
+const rand = (a, b) => a + Math.random() * (b - a);
+// best scores
+document.querySelectorAll('.card').forEach(c => {
+  let v = null; try { v = localStorage.getItem('flightgames.best.' + c.dataset.id); } catch (e) {}
+  if (v) c.querySelector('.best b').textContent = (+v).toLocaleString() + (c.dataset.id === 'canyon' ? ' m' : '');
+  c.addEventListener('mousemove', e => {
+    const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    c.style.setProperty('--ry', ((x - 0.5) * 16) + 'deg'); c.style.setProperty('--rx', ((0.5 - y) * 12) + 'deg');
+    c.style.setProperty('--mx', x * 100 + '%'); c.style.setProperty('--my', y * 100 + '%');
+  });
+  c.addEventListener('mouseleave', () => { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); });
+  c.addEventListener('click', e => { e.preventDefault(); c.style.transition = 'transform .45s cubic-bezier(.6,-0.4,.7,1),opacity .45s'; c.style.transform = 'scale(1.15) translateZ(200px)'; c.style.opacity = 0; document.body.style.transition = 'background .4s'; setTimeout(() => location.href = c.getAttribute('href'), 420); });
+});
+addEventListener('pageshow', () => document.querySelectorAll('.card').forEach(c => { c.style.opacity = ''; c.style.transform = ''; c.style.transition = ''; }));
+
+// background: stars + jets with trails
+const bg = document.getElementById('bg'), b = bg.getContext('2d');
+let BW, BH;
+function rs() { const d = Math.min(devicePixelRatio, 2); BW = innerWidth; BH = innerHeight; bg.width = BW * d; bg.height = BH * d; b.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', rs); rs();
+const stars = Array.from({ length: 220 }, () => ({ x: Math.random(), y: Math.random(), z: rand(0.2, 1) }));
+const jets = Array.from({ length: 5 }, (_, i) => newJet(i * 1.7));
+function newJet(t0 = 0) { const fromLeft = Math.random() < 0.5; return { x: fromLeft ? -0.1 : 1.1, y: rand(0.1, 0.9), vx: (fromLeft ? 1 : -1) * rand(0.12, 0.25), vy: rand(-0.05, 0.05), t: -t0, trail: [], col: ['#5ff2ff', '#ff3b6b', '#ffd34d'][Math.random() * 3 | 0] }; }
+function jetShape(ctx, s) { ctx.beginPath(); ctx.moveTo(s, 0); ctx.lineTo(-s * 0.6, s * 0.55); ctx.lineTo(-s * 0.3, 0); ctx.lineTo(-s * 0.6, -s * 0.55); ctx.closePath(); ctx.fill(); }
+let last = performance.now(), T = 0;
+function drawBG(dt) {
+  const g = b.createLinearGradient(0, 0, 0, BH); g.addColorStop(0, '#070a1a'); g.addColorStop(0.65, '#141a3e'); g.addColorStop(1, '#3a1c38');
+  b.fillStyle = g; b.fillRect(0, 0, BW, BH);
+  for (const s of stars) { s.x -= dt * 0.01 * s.z; if (s.x < 0) s.x += 1; b.fillStyle = `rgba(255,255,255,${0.3 + s.z * 0.6 * (0.7 + 0.3 * Math.sin(T * 3 + s.y * 50))})`; b.fillRect(s.x * BW, s.y * BH, s.z * 2, s.z * 2); }
+  // perspective grid
+  b.strokeStyle = 'rgba(95,242,255,.12)'; b.lineWidth = 1; const hz = BH * 0.72;
+  for (let i = 0; i < 14; i++) { const k = ((i + T * 0.6) % 14) / 14, y = hz + (BH - hz) * k * k; b.beginPath(); b.moveTo(0, y); b.lineTo(BW, y); b.stroke(); }
+  for (let i = -12; i <= 12; i++) { b.beginPath(); b.moveTo(BW / 2 + i * 20, hz); b.lineTo(BW / 2 + i * 160, BH); b.stroke(); }
+  for (let i = 0; i < jets.length; i++) {
+    const j = jets[i]; j.t += dt; if (j.t < 0) continue;
+    j.x += j.vx * dt; j.y += j.vy * dt + Math.sin(j.t * 2) * 0.0006;
+    j.trail.push([j.x, j.y]); if (j.trail.length > 40) j.trail.shift();
+    b.lineCap = 'round';
+    for (let k = 1; k < j.trail.length; k++) { b.strokeStyle = j.col + Math.round(k / j.trail.length * 120).toString(16).padStart(2, '0'); b.lineWidth = k / j.trail.length * 3; b.beginPath(); b.moveTo(j.trail[k - 1][0] * BW, j.trail[k - 1][1] * BH); b.lineTo(j.trail[k][0] * BW, j.trail[k][1] * BH); b.stroke(); }
+    b.save(); b.translate(j.x * BW, j.y * BH); b.rotate(Math.atan2(j.vy * BH, j.vx * BW)); b.fillStyle = '#fff'; b.shadowColor = j.col; b.shadowBlur = 14; jetShape(b, 9); b.restore();
+    if (j.x < -0.2 || j.x > 1.2) jets[i] = newJet(rand(0, 2));
+  }
+}
+// previews
+const prevs = [...document.querySelectorAll('canvas[data-p]')].map(c => ({ c, x: c.getContext('2d'), p: +c.dataset.p, s: {} }));
+function sizePrev() { for (const P of prevs) { const r = P.c.getBoundingClientRect(); P.c.width = r.width * 1.5; P.c.height = r.height * 1.5; } }
+addEventListener('resize', sizePrev); sizePrev();
+function prevSky(x, w, h, S) {
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1b2766'); g.addColorStop(0.55, '#f49a72'); g.addColorStop(0.56, '#1a4f78'); g.addColorStop(1, '#0c2a44'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  x.fillStyle = 'rgba(255,230,180,.9)'; x.beginPath(); x.arc(w * 0.72, h * 0.5, h * 0.07, 0, 7); x.fill();
+  S.cl = S.cl || Array.from({ length: 8 }, () => ({ x: Math.random(), y: rand(0.15, 0.5), s: rand(0.5, 1.3) }));
+  for (const c of S.cl) { c.x -= 0.004 * c.s; if (c.x < -0.2) c.x = 1.2; x.fillStyle = 'rgba(255,240,235,.75)'; x.beginPath(); x.ellipse(c.x * w, c.y * h, 28 * c.s, 9 * c.s, 0, 0, 7); x.fill(); }
+  for (let i = 0; i < 8; i++) { const k = ((i / 8 + T * 0.7) % 1); x.strokeStyle = `rgba(255,255,255,${0.15 * k})`; x.beginPath(); x.moveTo(0, h * 0.56 + (h * 0.44) * k * k); x.lineTo(w, h * 0.56 + (h * 0.44) * k * k); x.stroke(); }
+  const bank = Math.sin(T * 1.3) * 0.5, px = w / 2 + Math.sin(T * 1.3) * w * 0.12, py = h * 0.62 + Math.cos(T * 0.9) * h * 0.05;
+  // tracers
+  x.strokeStyle = '#ffef9a'; x.lineWidth = 2;
+  for (let i = 0; i < 4; i++) { const k = ((T * 3 + i / 4) % 1); const ty = py - k * h * 0.5; x.globalAlpha = 1 - k; x.beginPath(); x.moveTo(px + (i % 2 ? 14 : -14) * (1 - k), ty); x.lineTo(px + (i % 2 ? 14 : -14) * (1 - k), ty - 12); x.stroke(); }
+  x.globalAlpha = 1;
+  // enemy explode
+  const et = (T * 0.5) % 1, ex = w * 0.5 + Math.sin(T) * w * 0.15, ey = h * 0.25;
+  if (et < 0.6) { x.fillStyle = '#ff3b6b'; x.save(); x.translate(ex, ey); x.rotate(Math.PI / 2); jetShape(x, 7); x.restore(); }
+  else { const r = (et - 0.6) / 0.4; x.fillStyle = `rgba(255,${200 - r * 150},80,${1 - r})`; x.beginPath(); x.arc(ex, ey, 6 + r * 30, 0, 7); x.fill(); x.strokeStyle = `rgba(255,220,160,${1 - r})`; x.beginPath(); x.arc(ex, ey, 10 + r * 55, 0, 7); x.stroke(); }
+  x.save(); x.translate(px, py); x.rotate(bank); x.fillStyle = '#e8eef5'; x.beginPath(); x.moveTo(0, -12); x.lineTo(30, 6); x.lineTo(30, 9); x.lineTo(0, 7); x.lineTo(-30, 9); x.lineTo(-30, 6); x.closePath(); x.fill();
+  x.fillStyle = '#66d8ff'; x.beginPath(); x.arc(0, 4, 4 + Math.random() * 2, 0, 7); x.fill(); x.restore();
+}
+function prevStorm(x, w, h, S) {
+  x.fillStyle = '#060818'; x.fillRect(0, 0, w, h);
+  const g = x.createRadialGradient(w * 0.3, h * 0.3, 0, w * 0.3, h * 0.3, w * 0.6); g.addColorStop(0, 'rgba(140,40,160,.45)'); g.addColorStop(1, 'transparent'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  S.st = S.st || Array.from({ length: 60 }, () => ({ x: Math.random(), y: Math.random(), z: rand(0.3, 1) }));
+  for (const s of S.st) { s.y += 0.006 * s.z; if (s.y > 1) s.y = 0; x.fillStyle = `rgba(255,255,255,${s.z})`; x.fillRect(s.x * w, s.y * h, 1.5, 1.5 + s.z * 3); }
+  const bx = w / 2 + Math.sin(T * 0.8) * w * 0.2, by = h * 0.25;
+  for (let ring = 0; ring < 5; ring++) {
+    const r = ((T * 60 + ring * 30) % 150) * (w / 300);
+    for (let i = 0; i < 18; i++) { const a = i / 18 * 6.283 + T * 0.8 + ring * 0.3; x.fillStyle = ring % 2 ? '#ff3b6b' : '#ffd34d'; x.shadowColor = x.fillStyle; x.shadowBlur = 8; x.beginPath(); x.arc(bx + Math.cos(a) * r, by + Math.sin(a) * r, 3, 0, 7); x.fill(); }
+  }
+  x.shadowBlur = 0;
+  x.fillStyle = '#ff3b6b'; x.beginPath(); x.moveTo(bx, by + 18); x.lineTo(bx + 30, by - 8); x.lineTo(bx + 12, by - 14); x.lineTo(bx - 12, by - 14); x.lineTo(bx - 30, by - 8); x.closePath(); x.fill();
+  const px = w / 2 + Math.sin(T * 1.7) * w * 0.25, py = h * 0.82;
+  x.fillStyle = '#5ff2ff'; for (let i = 0; i < 6; i++) { const k = ((T * 4 + i / 6) % 1); x.fillRect(px - 8 + (i % 3) * 8 - 1, py - k * h * 0.6, 2, 9); }
+  x.fillStyle = '#fff'; x.beginPath(); x.moveTo(px, py - 12); x.lineTo(px + 10, py + 8); x.lineTo(px, py + 4); x.lineTo(px - 10, py + 8); x.closePath(); x.fill();
+  x.fillStyle = '#ffb040'; x.beginPath(); x.arc(px, py + 9, 2 + Math.random() * 2, 0, 7); x.fill();
+}
+function prevCanyon(x, w, h, S) {
+  const theme = [['#f2a65a', '#8a4a22'], ['#bfe6ff', '#3a6a9a'], ['#ff5a2a', '#3a0d0a']][Math.floor(T / 4) % 3];
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, theme[0]); g.addColorStop(1, theme[1]); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const cx = w / 2 + Math.sin(T * 0.9) * w * 0.08, cy = h * 0.45 + Math.cos(T * 0.7) * h * 0.06;
+  for (let i = 14; i >= 0; i--) {
+    const k = ((i + (T * 3) % 1) / 14), z = Math.pow(k, 2.2), rw = w * (0.08 + z * 0.9), rh = h * (0.08 + z * 0.95);
+    const ox = cx + (w / 2 - cx) * z, oy = cy + (h * 0.5 - cy) * z;
+    x.strokeStyle = `rgba(0,0,0,${0.15 + z * 0.3})`; x.lineWidth = 1 + z * 10; x.strokeRect(ox - rw / 2, oy - rh / 2, rw, rh);
+    if (i % 4 === 0) { x.strokeStyle = `rgba(255,211,77,${0.4 + z * 0.6})`; x.lineWidth = 1 + z * 5; x.beginPath(); x.arc(ox, oy, rh * 0.22, 0, 7); x.stroke(); }
+  }
+  for (let i = 0; i < 20; i++) { const a = i / 20 * 6.283 + i, k = ((T * 1.5 + i * 0.37) % 1); x.strokeStyle = `rgba(255,255,255,${k * 0.5})`; x.beginPath(); x.moveTo(w / 2 + Math.cos(a) * k * w * 0.4, h / 2 + Math.sin(a) * k * h * 0.4); x.lineTo(w / 2 + Math.cos(a) * (k + 0.15) * w * 0.5, h / 2 + Math.sin(a) * (k + 0.15) * h * 0.5); x.stroke(); }
+  const px = w / 2 + Math.sin(T * 1.6) * w * 0.15, py = h * 0.7 + Math.sin(T * 2.1) * h * 0.06;
+  x.save(); x.translate(px, py); x.rotate(Math.cos(T * 1.6) * 0.4); x.fillStyle = '#e8eef5'; x.beginPath(); x.moveTo(0, -10); x.lineTo(26, 5); x.lineTo(0, 3); x.lineTo(-26, 5); x.closePath(); x.fill(); x.fillStyle = '#66d8ff'; x.beginPath(); x.arc(0, 4, 3 + Math.random() * 2, 0, 7); x.fill(); x.restore();
+}
+const prevFns = [prevSky, prevStorm, prevCanyon];
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
+  drawBG(dt);
+  for (const P of prevs) prevFns[P.p](P.x, P.c.width, P.c.height, P.s);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
